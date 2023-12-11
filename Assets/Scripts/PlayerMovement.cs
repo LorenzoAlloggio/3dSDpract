@@ -1,61 +1,116 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float walkingSpeed;
-    public float runningSpeed;
-    public float gravity;
-    public float jumpSpeed;
+    public float speed = 6f;
+    public float gravity = -9.81f;
+    public float jumpHeight = 3f;
+    public Transform groundCheck;
+    public LayerMask groundMask;
 
-    public CharacterController characterController;
+    private Rigidbody rb;
+    private bool isGrounded;
+    private bool readyToJump = true;
+    private bool exitingSlope = false;
 
-    private float xMove;
-    private float zMove;
-    private Vector3 move;
-    private bool isJumping;
-    private bool isRunning;
+    public TextMeshProUGUI text_speed;
+    public TextMeshProUGUI text_mode;
 
-    // Start is called before the first frame update
+    public float maxSlopeAngle = 50f;
+    public float playerHeight = 2f;
+
+    public enum State { Ground, Air }
+    public State state = State.Ground;
+
     void Start()
     {
-        gravity = -9.81f; // Set to a negative value for downward gravity
+        rb = GetComponent<Rigidbody>();
+        rb.freezeRotation = true; // Ensure rotations are frozen
+        rb.useGravity = false; // Disable gravity initially
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
+        isGrounded = Physics.CheckSphere(groundCheck.position, 0.2f, groundMask);
 
-        isRunning = Input.GetKey(KeyCode.LeftShift);
-
-
-        float currentSpeed = isRunning ? runningSpeed : walkingSpeed;
-
-        xMove = Input.GetAxis("Horizontal") * currentSpeed * Time.deltaTime;
-        zMove = Input.GetAxis("Vertical") * currentSpeed * Time.deltaTime;
-
-        move = transform.right * xMove + transform.forward * zMove;
-
-
-
-        if (characterController.isGrounded)
+        if (isGrounded && exitingSlope)
         {
-            // Apply gravity only when the character is grounded
-            move.y = gravity * Time.deltaTime;
+            exitingSlope = false;
+        }
 
-            if (Input.GetButtonDown("Jump"))
-            {
-                // Jump only if the jump button is pressed and the character is grounded
-                move.y = jumpSpeed;
-            }
+        float moveX = Input.GetAxis("Horizontal");
+        float moveZ = Input.GetAxis("Vertical");
+
+        Vector3 moveDirection = new Vector3(moveX, 0f, moveZ).normalized;
+
+        if (isGrounded && !exitingSlope)
+        {
+            state = State.Ground;
+            JumpCheck();
         }
         else
         {
-            // Apply gravity continuously when the character is in the air
-            move.y += gravity * Time.deltaTime;
+            state = State.Air;
         }
 
-        characterController.Move(move);
+        Vector3 force = moveDirection * speed;
+
+        // Apply gravity only when in the air
+        if (!isGrounded)
+        {
+            force.y += gravity;
+        }
+
+        rb.AddForce(force);
+
+        TextStuff();
+    }
+
+    private void JumpCheck()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Jump();
+        }
+    }
+
+    private void Jump()
+    {
+        exitingSlope = true;
+
+        // reset y velocity
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
+        rb.AddForce(Vector3.up * jumpHeight, ForceMode.Impulse);
+    }
+
+    private void TextStuff()
+    {
+        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
+        if (state == State.Ground)
+            text_speed.SetText("Speed: " + Round(rb.velocity.magnitude, 1) + " / " + Round(speed, 1));
+        else
+            text_speed.SetText("Speed: " + Round(flatVel.magnitude, 1) + " / " + Round(speed, 1));
+
+        text_mode.SetText(state.ToString());
+    }
+
+    public static float Round(float value, int digits)
+    {
+        float mult = Mathf.Pow(10.0f, (float)digits);
+        return Mathf.Round(value * mult) / mult;
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        if (isGrounded)
+        {
+            // Align player's up direction with the normal of the ground
+            transform.up = collision.contacts[0].normal;
+        }
     }
 }
