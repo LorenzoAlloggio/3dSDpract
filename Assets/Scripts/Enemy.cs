@@ -1,29 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class enemy : MonoBehaviour
+public class Enemy : MonoBehaviour
 {
+    public NavMeshAgent EnemyAgent;
+    public int damageAmount = 10;
 
-    public NavMeshAgent Enemy;
+    private float squareOfMovement = 20f;
+    private float xMin, xMax, zMin, zMax;
+    private float xPosition, yPosition, zPosition;
+    private float closeEnough = 3f;
 
-    public float squareOfMovement = 20f;
-
-    public float xMin;
-    public float xMax;
-    public float zMin;
-    public float zMax;
-
-    private float xPosition;
-    private float yPosition;
-    private float zPosition;
-
-    public float closeEnough = 3f;
-
-
-    // Start is called before the first frame update
     void Start()
     {
         xMin = -squareOfMovement;
@@ -34,12 +21,23 @@ public class enemy : MonoBehaviour
         newLocation();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Vector3.Distance(transform.position, new Vector3(xPosition, yPosition, zPosition)) <= closeEnough)
         {
+            DealDamageToPlayer();
             newLocation();
+        }
+    }
+
+    void DealDamageToPlayer()
+    {
+        // Check if the player has a PlayerHealth script attached
+        PlayerHealth playerHealth = FindObjectOfType<PlayerHealth>();
+        if (playerHealth != null)
+        {
+            // Deal damage to the player
+            playerHealth.TakeDamage(damageAmount);
         }
     }
 
@@ -48,6 +46,6 @@ public class enemy : MonoBehaviour
         xPosition = Random.Range(xMin, xMax);
         yPosition = transform.position.y;
         zPosition = Random.Range(zMin, zMax);
-        Enemy.SetDestination(new Vector3(xPosition, yPosition, zPosition));
+        EnemyAgent.SetDestination(new Vector3(xPosition, yPosition, zPosition));
     }
 }

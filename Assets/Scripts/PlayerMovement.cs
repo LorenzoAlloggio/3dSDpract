@@ -1,116 +1,71 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
+using TMPro;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float speed = 6f;
-    public float gravity = -9.81f;
-    public float jumpHeight = 3f;
-    public Transform groundCheck;
-    public LayerMask groundMask;
+    public float walkingSpeed;
+    public float runningSpeed;
+    public float gravity;
+    public float jumpSpeed;
+    public CharacterController characterController;
 
-    private Rigidbody rb;
-    private bool isGrounded;
-    private bool readyToJump = true;
-    private bool exitingSlope = false;
+    private float xMove;
+    private float zMove;
+    private Vector3 move;
+    private bool isJumping;
+    private float verticalVelocity; // Adjusted for smooth jumping
+    private bool isRunning;
 
-    public TextMeshProUGUI text_speed;
-    public TextMeshProUGUI text_mode;
+    public TextMeshProUGUI speedText; // Assign this in the inspector
 
-    public float maxSlopeAngle = 50f;
-    public float playerHeight = 2f;
-
-    public enum State { Ground, Air }
-    public State state = State.Ground;
-
+    // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true; // Ensure rotations are frozen
-        rb.useGravity = false; // Disable gravity initially
+        gravity = -18f; // Set to a negative value for downward gravity
+        verticalVelocity = 0f;
     }
 
-    void FixedUpdate()
+    // Update is called once per frame
+    void Update()
     {
-        isGrounded = Physics.CheckSphere(groundCheck.position, 0.2f, groundMask);
+        // Check whether the player is running
+        isRunning = Input.GetKey(KeyCode.LeftShift);
 
-        if (isGrounded && exitingSlope)
+        float currentSpeed = isRunning ? runningSpeed : walkingSpeed;
+        xMove = Input.GetAxis("Horizontal") * currentSpeed * Time.deltaTime;
+        zMove = Input.GetAxis("Vertical") * currentSpeed * Time.deltaTime;
+        move = transform.right * xMove + transform.forward * zMove;
+
+        if (characterController.isGrounded)
         {
-            exitingSlope = false;
-        }
+            // Apply gravity while the player is grounded
+            verticalVelocity = Mathf.MoveTowards(verticalVelocity, gravity, Time.deltaTime * jumpSpeed);
 
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
-
-        Vector3 moveDirection = new Vector3(moveX, 0f, moveZ).normalized;
-
-        if (isGrounded && !exitingSlope)
-        {
-            state = State.Ground;
-            JumpCheck();
+            if (Input.GetButtonDown("Jump"))
+            {
+                // Jump if the player is grounded
+                verticalVelocity = jumpSpeed;
+            }
         }
         else
         {
-            state = State.Air;
+            // Keep applying gravity while airborne
+            verticalVelocity += gravity * Time.deltaTime;
         }
 
-        Vector3 force = moveDirection * speed;
+        move.y = verticalVelocity * Time.deltaTime;
 
-        // Apply gravity only when in the air
-        if (!isGrounded)
-        {
-            force.y += gravity;
-        }
+        characterController.Move(move);
 
-        rb.AddForce(force);
-
-        TextStuff();
+        // Display speed in the TextMeshProUGUI component
+        float currentMagnitude = new Vector2(characterController.velocity.x, characterController.velocity.z).magnitude;
+        speedText.text = "Speed: " + Round(currentMagnitude, 1);
     }
 
-    private void JumpCheck()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Jump();
-        }
-    }
-
-    private void Jump()
-    {
-        exitingSlope = true;
-
-        // reset y velocity
-        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-
-        rb.AddForce(Vector3.up * jumpHeight, ForceMode.Impulse);
-    }
-
-    private void TextStuff()
-    {
-        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-
-        if (state == State.Ground)
-            text_speed.SetText("Speed: " + Round(rb.velocity.magnitude, 1) + " / " + Round(speed, 1));
-        else
-            text_speed.SetText("Speed: " + Round(flatVel.magnitude, 1) + " / " + Round(speed, 1));
-
-        text_mode.SetText(state.ToString());
-    }
-
-    public static float Round(float value, int digits)
+    // Helper function to round a float value
+    private static float Round(float value, int digits)
     {
         float mult = Mathf.Pow(10.0f, (float)digits);
         return Mathf.Round(value * mult) / mult;
-    }
-
-    void OnCollisionStay(Collision collision)
-    {
-        if (isGrounded)
-        {
-            // Align player's up direction with the normal of the ground
-            transform.up = collision.contacts[0].normal;
-        }
     }
 }
