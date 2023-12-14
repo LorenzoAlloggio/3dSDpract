@@ -20,6 +20,12 @@ public class Shooting : MonoBehaviour
             {
                 if (rayHit.collider.tag.Equals("NPC"))
                 {
+                    ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
+                    if (scoreManager != null)
+                    {
+                        scoreManager.IncreaseEnemiesKilled();
+                    }
+
                     Destroy(rayHit.collider.gameObject);
                     Debug.Log("You are going to die");
                 }

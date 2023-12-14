@@ -47,6 +47,6 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         // You can replace "YourNextSceneName" with the name of the scene you want to load.
-        SceneManager.LoadScene("1_Main_Menu");
+        SceneManager.LoadScene("4_Lose_Screen");
     }
 }

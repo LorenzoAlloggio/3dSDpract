@@ -144,8 +144,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc7be647e49352941b97692c3c363948, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EnemyAgent: {fileID: 3445981774196309951}
+  enemyAgent: {fileID: 3445981774196309951}
   damageAmount: 10
+  xMinBorder: -16
+  xMaxBorder: 16
+  zMinBorder: -22.6
+  zMaxBorder: 22.7
 --- !u!114 &8422692628592993378
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -158,7 +162,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b8a2b8bcff7e45478aa6b06cd42e1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackRange: 5
+  attackRange: 3
   damageAmount: 10
   attackCooldown: 2
   defaultMaterial: {fileID: 2100000, guid: e3b3c03983ba78b4ab1e631ba1ac9d31, type: 2}

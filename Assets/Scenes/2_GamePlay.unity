@@ -2407,7 +2407,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 1018382464}
-  speed: 500
+  speed: 1500
   cam: {fileID: 560963436}
 --- !u!1001 &578742002
 PrefabInstance:
@@ -7060,7 +7060,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 127
+    m_Bits: 383
   m_UseGeometry: 0
   m_DefaultArea: 0
   m_GenerateLinks: 0
@@ -8186,8 +8186,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 7017669198868742974, guid: 9e70401c194bed942b5dfe91c38ec6fe,
     type: 3}
-  enemyCount: 10
-  spawnDelay: 5
+  enemyCount: 2147483647
+  spawnDelay: 2
 --- !u!4 &2144620397
 Transform:
   m_ObjectHideFlags: 0

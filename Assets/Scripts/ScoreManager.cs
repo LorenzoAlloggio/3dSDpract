@@ -4,21 +4,21 @@ using TMPro;
 public class ScoreManager : MonoBehaviour
 {
     public TextMeshProUGUI scoreText; // Use TextMeshProUGUI for TextMeshPro
-    private int score = 0;
+    private int enemiesKilled = 0;
 
     void Start()
     {
         UpdateScoreText();
     }
 
-    public void IncreaseScore()
+    public void IncreaseEnemiesKilled()
     {
-        score++;
+        enemiesKilled++;
         UpdateScoreText();
     }
 
     void UpdateScoreText()
     {
-        scoreText.text = "Score: " + score;
+        scoreText.text = "Score: " + enemiesKilled;
     }
 }

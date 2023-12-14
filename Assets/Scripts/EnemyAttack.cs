@@ -5,24 +5,27 @@ public class EnemyAttack : MonoBehaviour
 {
     private Enemy enemyMovement;
     private Transform player;
-    public float attackRange = 3f; // Adjust this value to your desired attack range
+    public float attackRange = 3f;
     public int damageAmount = 10;
-    public float attackCooldown = 2f; // Time between attacks
+    public float attackCooldown = 2f;
     private float nextAttackTime;
     public Material defaultMaterial;
     public Material alertMaterial;
     public Renderer rend;
-    private bool foundPlayer = false; // Initialize to false
-
-    public TextMeshProUGUI scoreText; // Use TextMeshProUGUI for TextMeshPro
+    private bool foundPlayer = false;
 
     private void Awake()
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
         enemyMovement = GetComponent<Enemy>();
         rend = GetComponent<Renderer>();
-        foundPlayer = false; // Make sure it's initialized to false
-        nextAttackTime = 0f; // Initialize nextAttackTime
+        foundPlayer = false;
+        nextAttackTime = 0f;
+    }
+
+    private void Start()
+    {
+        enemyMovement.SetNewLocation();
     }
 
     private void Update()
@@ -39,7 +42,6 @@ public class EnemyAttack : MonoBehaviour
             {
                 // Player is not in attack range, continue chasing
                 rend.material = alertMaterial;
-                enemyMovement.EnemyAgent.SetDestination(player.position);
             }
         }
         else
@@ -49,13 +51,12 @@ public class EnemyAttack : MonoBehaviour
             {
                 foundPlayer = true;
                 rend.material = alertMaterial;
-                enemyMovement.EnemyAgent.SetDestination(player.position);
             }
             else
             {
-                // Player is not in attack range, revert to default material and search
+                // Player is not in attack range, revert to default material and maintain random movement
                 rend.material = defaultMaterial;
-                enemyMovement.newLocation();
+                enemyMovement.SetNewLocation();
             }
         }
     }
@@ -73,12 +74,6 @@ public class EnemyAttack : MonoBehaviour
             playerHealth.TakeDamage(damageAmount);
         }
 
-        ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
-        if (scoreManager != null)
-        {
-            scoreManager.IncreaseScore();
-        }
-
         nextAttackTime = Time.time + attackCooldown;
     }
 
@@ -86,10 +81,15 @@ public class EnemyAttack : MonoBehaviour
     {
         if (foundPlayer && Vector3.Distance(transform.position, player.position) > attackRange)
         {
-            // Player is out of attack range, revert to default material and search
+            // Player is out of attack range, maintain random movement
             rend.material = defaultMaterial;
-            enemyMovement.newLocation();
+            enemyMovement.SetNewLocation();
             foundPlayer = false;
+        }
+        else if (foundPlayer)
+        {
+            // Player is in attack range, continue chasing
+            enemyMovement.enemyAgent.SetDestination(player.position);
         }
     }
 }

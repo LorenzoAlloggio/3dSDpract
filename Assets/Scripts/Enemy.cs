@@ -3,43 +3,64 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
-    public NavMeshAgent EnemyAgent;
+    public NavMeshAgent enemyAgent;
     public int damageAmount = 10;
 
-    private float squareOfMovement = 20f;
-    private float xMin, xMax, zMin, zMax;
-    private float xPosition, yPosition, zPosition;
-    private float closeEnough = 3f;
+    public float xMinBorder = -16f;
+    public float xMaxBorder = 16f;
+    public float zMinBorder = -22.6f;
+    public float zMaxBorder = 22.7f;
+
+    private float closeEnough = 0.5f;
+
+    private float nextLocationTime;
 
     void Start()
     {
-        xMin = -squareOfMovement;
-        xMax = squareOfMovement;
-        zMin = -squareOfMovement;
-        zMax = squareOfMovement;
-
-        newLocation();
+        StartCoroutine(SetNewLocationRoutine());
     }
 
-    void Update()
+    System.Collections.IEnumerator SetNewLocationRoutine()
     {
-        if (Vector3.Distance(transform.position, new Vector3(xPosition, yPosition, zPosition)) <= closeEnough)
+        while (true)
         {
-            // Uncomment the line below for debugging
-            // Debug.Log("Reached destination, getting new location.");
-            newLocation();
+            // Wait for a random interval before setting a new location
+            yield return new WaitForSeconds(1f);
+
+            // Check if the enemy is not actively chasing the player
+            if (!IsChasingPlayer())
+            {
+                SetNewLocation();
+            }
         }
     }
 
-    public void newLocation()
+    public void SetNewLocation()
     {
-        xPosition = Random.Range(xMin, xMax);
-        yPosition = transform.position.y;
-        zPosition = Random.Range(zMin, zMax);
+        // Check if the enemy is currently moving towards the previous destination
+        if (!IsMovingTowardsPreviousDestination())
+        {
+            // Reset the path to clear any previous destination
+            enemyAgent.ResetPath();
 
-        // Uncomment the line below for debugging
-        // Debug.Log($"Setting new destination: {new Vector3(xPosition, yPosition, zPosition)}");
+            float xPosition = Mathf.Clamp(Random.Range(xMinBorder, xMaxBorder), xMinBorder, xMaxBorder);
+            float yPosition = transform.position.y;
+            float zPosition = Mathf.Clamp(Random.Range(zMinBorder, zMaxBorder), zMinBorder, zMaxBorder);
 
-        EnemyAgent.SetDestination(new Vector3(xPosition, yPosition, zPosition));
+            enemyAgent.SetDestination(new Vector3(xPosition, yPosition, zPosition));
+            Debug.Log("Setting new location to: " + new Vector3(xPosition, yPosition, zPosition));
+        }
+    }
+
+    private bool IsChasingPlayer()
+    {
+        // Add logic to determine if the enemy is actively chasing the player
+        return enemyAgent.hasPath && enemyAgent.remainingDistance > closeEnough;
+    }
+
+    private bool IsMovingTowardsPreviousDestination()
+    {
+        // Check if the enemy is currently moving towards the previous destination
+        return enemyAgent.hasPath && !enemyAgent.pathPending && enemyAgent.remainingDistance > 0.1f;
     }
 }
