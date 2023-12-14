@@ -4,31 +4,46 @@ using UnityEngine;
 
 public class CameraRotation : MonoBehaviour
 {
+
     public Transform player;
-    public float speed = 100f;
+    public float speed = 300f;
+
+    public Camera cam;
 
     private float xMouse;
     private float yMouse;
     private float xRotation = 0f;
-
+    // Start is called before the first frame update
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
     }
 
+
+    // Update is called once per frame
     void Update()
     {
         xMouse = Input.GetAxis("Mouse X") * speed * Time.deltaTime;
         yMouse = Input.GetAxis("Mouse Y") * speed * Time.deltaTime;
 
-        // Calculate rotation
+        if (Input.GetKeyDown(KeyCode.LeftAlt))
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftAlt))
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        
+
+        //calculation rotation
         xRotation -= yMouse;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-
-        // Apply rotation to the camera
+        xRotation = Mathf.Clamp(xRotation, -80f, 80f);
         transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        // Rotate the player around the world up vector (y-axis)
         player.Rotate(Vector3.up * xMouse);
+
+
     }
 }

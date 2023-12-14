@@ -1,63 +1,95 @@
 using UnityEngine;
+using TMPro;
 
 public class EnemyAttack : MonoBehaviour
 {
     private Enemy enemyMovement;
     private Transform player;
-    public float attackRange = 0.1f;
+    public float attackRange = 3f; // Adjust this value to your desired attack range
     public int damageAmount = 10;
     public float attackCooldown = 2f; // Time between attacks
     private float nextAttackTime;
     public Material defaultMaterial;
     public Material alertMaterial;
     public Renderer rend;
+    private bool foundPlayer = false; // Initialize to false
+
+    public TextMeshProUGUI scoreText; // Use TextMeshProUGUI for TextMeshPro
 
     private void Awake()
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
         enemyMovement = GetComponent<Enemy>();
         rend = GetComponent<Renderer>();
+        foundPlayer = false; // Make sure it's initialized to false
+        nextAttackTime = 0f; // Initialize nextAttackTime
     }
 
     private void Update()
     {
         Debug.Log("Distance to player: " + Vector3.Distance(transform.position, player.position));
-        if (CanAttack())
+
+        if (foundPlayer)
         {
-            AttackPlayer();
+            if (CanAttack())
+            {
+                AttackPlayer();
+            }
+            else
+            {
+                // Player is not in attack range, continue chasing
+                rend.material = alertMaterial;
+                enemyMovement.EnemyAgent.SetDestination(player.position);
+            }
+        }
+        else
+        {
+            // Player not found, check for player within attack range to start chasing
+            if (Vector3.Distance(transform.position, player.position) <= attackRange)
+            {
+                foundPlayer = true;
+                rend.material = alertMaterial;
+                enemyMovement.EnemyAgent.SetDestination(player.position);
+            }
+            else
+            {
+                // Player is not in attack range, revert to default material and search
+                rend.material = defaultMaterial;
+                enemyMovement.newLocation();
+            }
         }
     }
 
     private bool CanAttack()
     {
-        return Vector3.Distance(transform.position, player.position) <= attackRange &&
-           Vector3.Distance(transform.position, player.position) >= 0.1f;
+        return Time.time >= nextAttackTime;
     }
 
     private void AttackPlayer()
     {
-        // Deal damage to the player (you can replace this with your own damage logic)
         PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
         if (playerHealth != null)
         {
             playerHealth.TakeDamage(damageAmount);
         }
 
-        // Set the next attack time based on the cooldown
+        ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
+        if (scoreManager != null)
+        {
+            scoreManager.IncreaseScore();
+        }
+
         nextAttackTime = Time.time + attackCooldown;
     }
 
     private void FixedUpdate()
     {
-        if (Vector3.Distance(transform.position, player.position) <= attackRange)
+        if (foundPlayer && Vector3.Distance(transform.position, player.position) > attackRange)
         {
-            rend.sharedMaterial = alertMaterial; // Change Material
-            enemyMovement.EnemyAgent.SetDestination(player.position); // Set destination to player position
-        }
-        else
-        {
-            rend.sharedMaterial = defaultMaterial; // Set Material back to default
-            enemyMovement.newLocation(); // Call new location function
+            // Player is out of attack range, revert to default material and search
+            rend.material = defaultMaterial;
+            enemyMovement.newLocation();
+            foundPlayer = false;
         }
     }
 }

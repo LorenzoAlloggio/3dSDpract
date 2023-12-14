@@ -25,19 +25,9 @@ public class Enemy : MonoBehaviour
     {
         if (Vector3.Distance(transform.position, new Vector3(xPosition, yPosition, zPosition)) <= closeEnough)
         {
-            DealDamageToPlayer();
+            // Uncomment the line below for debugging
+            // Debug.Log("Reached destination, getting new location.");
             newLocation();
-        }
-    }
-
-    void DealDamageToPlayer()
-    {
-        // Check if the player has a PlayerHealth script attached
-        PlayerHealth playerHealth = FindObjectOfType<PlayerHealth>();
-        if (playerHealth != null)
-        {
-            // Deal damage to the player
-            playerHealth.TakeDamage(damageAmount);
         }
     }
 
@@ -46,6 +36,10 @@ public class Enemy : MonoBehaviour
         xPosition = Random.Range(xMin, xMax);
         yPosition = transform.position.y;
         zPosition = Random.Range(zMin, zMax);
+
+        // Uncomment the line below for debugging
+        // Debug.Log($"Setting new destination: {new Vector3(xPosition, yPosition, zPosition)}");
+
         EnemyAgent.SetDestination(new Vector3(xPosition, yPosition, zPosition));
     }
 }

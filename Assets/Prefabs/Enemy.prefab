@@ -158,7 +158,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b8a2b8bcff7e45478aa6b06cd42e1b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackRange: 0.01
+  attackRange: 5
   damageAmount: 10
   attackCooldown: 2
   defaultMaterial: {fileID: 2100000, guid: e3b3c03983ba78b4ab1e631ba1ac9d31, type: 2}
